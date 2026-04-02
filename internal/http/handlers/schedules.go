@@ -1,18 +1,23 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
+	"room-booking/internal/domain"
 	"room-booking/internal/http/response"
-	"room-booking/internal/service"
 )
 
-type ScheduleHandler struct {
-	service *service.ScheduleService
+type scheduleService interface {
+	Create(ctx context.Context, roomID string, daysOfWeek []int, startTime, endTime string) (*domain.Schedule, error)
 }
 
-func NewScheduleHandler(service *service.ScheduleService) *ScheduleHandler {
+type ScheduleHandler struct {
+	service scheduleService
+}
+
+func NewScheduleHandler(service scheduleService) *ScheduleHandler {
 	return &ScheduleHandler{service: service}
 }
 

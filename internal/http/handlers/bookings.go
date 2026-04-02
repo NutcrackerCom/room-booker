@@ -1,20 +1,28 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"strconv"
 
+	"room-booking/internal/domain"
 	"room-booking/internal/http/middleware"
 	"room-booking/internal/http/response"
-	"room-booking/internal/service"
 )
 
-type BookingHandler struct {
-	service *service.BookingService
+type bookingService interface {
+	Create(ctx context.Context, slotID, userID string, createConferenceLink bool) (*domain.Booking, error)
+	ListMyUpcoming(ctx context.Context, userID string) ([]domain.Booking, error)
+	Cancel(ctx context.Context, bookingID, userID string) (*domain.Booking, error)
+	ListAll(ctx context.Context, page, pageSize int) ([]domain.Booking, int, error)
 }
 
-func NewBookingHandler(service *service.BookingService) *BookingHandler {
+type BookingHandler struct {
+	service bookingService
+}
+
+func NewBookingHandler(service bookingService) *BookingHandler {
 	return &BookingHandler{service: service}
 }
 

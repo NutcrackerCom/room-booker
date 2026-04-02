@@ -1,17 +1,22 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 
+	"room-booking/internal/domain"
 	"room-booking/internal/http/response"
-	"room-booking/internal/service"
 )
 
-type SlotHandler struct {
-	service *service.SlotService
+type slotService interface {
+	ListAvailable(ctx context.Context, roomID, date string) ([]domain.Slot, error)
 }
 
-func NewSlotHandler(service *service.SlotService) *SlotHandler {
+type SlotHandler struct {
+	service slotService
+}
+
+func NewSlotHandler(service slotService) *SlotHandler {
 	return &SlotHandler{service: service}
 }
 

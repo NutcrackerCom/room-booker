@@ -6,20 +6,32 @@ import (
 	"time"
 
 	"room-booking/internal/domain"
-	"room-booking/internal/repository"
 	"room-booking/internal/slots"
 )
 
+type scheduleRoomRepository interface {
+	Exists(ctx context.Context, roomID string) (bool, error)
+}
+
+type scheduleRepository interface {
+	ExistsByRoomID(ctx context.Context, roomID string) (bool, error)
+	Create(ctx context.Context, roomID string, daysOfWeek []int, startTime, endTime string) (*domain.Schedule, error)
+}
+
+type scheduleSlotRepository interface {
+	Create(ctx context.Context, roomID string, startAt, endAt time.Time) error
+}
+
 type ScheduleService struct {
-	roomRepo     *repository.RoomRepository
-	scheduleRepo *repository.ScheduleRepository
-	slotRepo     *repository.SlotRepository
+	roomRepo     scheduleRoomRepository
+	scheduleRepo scheduleRepository
+	slotRepo     scheduleSlotRepository
 }
 
 func NewScheduleService(
-	roomRepo *repository.RoomRepository,
-	scheduleRepo *repository.ScheduleRepository,
-	slotRepo *repository.SlotRepository,
+	roomRepo scheduleRoomRepository,
+	scheduleRepo scheduleRepository,
+	slotRepo scheduleSlotRepository,
 ) *ScheduleService {
 	return &ScheduleService{
 		roomRepo:     roomRepo,

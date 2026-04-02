@@ -6,15 +6,26 @@ import (
 	"time"
 
 	"room-booking/internal/domain"
-	"room-booking/internal/repository"
 )
 
-type BookingService struct {
-	slotRepo    *repository.SlotRepository
-	bookingRepo *repository.BookingRepository
+type bookingSlotRepository interface {
+	GetByID(ctx context.Context, slotID string) (*domain.Slot, error)
 }
 
-func NewBookingService(slotRepo *repository.SlotRepository, bookingRepo *repository.BookingRepository) *BookingService {
+type bookingRepository interface {
+	Create(ctx context.Context, slotID, userID string, conferenceLink *string) (*domain.Booking, error)
+	ListMyUpcoming(ctx context.Context, userID string) ([]domain.Booking, error)
+	GetByID(ctx context.Context, bookingID string) (*domain.Booking, error)
+	Cancel(ctx context.Context, bookingID string) (*domain.Booking, error)
+	ListAll(ctx context.Context, page, pageSize int) ([]domain.Booking, int, error)
+}
+
+type BookingService struct {
+	slotRepo    bookingSlotRepository
+	bookingRepo bookingRepository
+}
+
+func NewBookingService(slotRepo bookingSlotRepository, bookingRepo bookingRepository) *BookingService {
 	return &BookingService{
 		slotRepo:    slotRepo,
 		bookingRepo: bookingRepo,

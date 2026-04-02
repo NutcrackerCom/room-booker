@@ -5,14 +5,18 @@ import (
 	"strings"
 
 	"room-booking/internal/domain"
-	"room-booking/internal/repository"
 )
 
-type RoomService struct {
-	repo *repository.RoomRepository
+type roomRepository interface {
+	Create(ctx context.Context, name string, description *string, capacity *int) (*domain.Room, error)
+	List(ctx context.Context) ([]domain.Room, error)
 }
 
-func NewRoomService(repo *repository.RoomRepository) *RoomService {
+type RoomService struct {
+	repo roomRepository
+}
+
+func NewRoomService(repo roomRepository) *RoomService {
 	return &RoomService{repo: repo}
 }
 

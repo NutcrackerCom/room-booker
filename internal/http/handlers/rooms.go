@@ -1,18 +1,24 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
+	"room-booking/internal/domain"
 	"room-booking/internal/http/response"
-	"room-booking/internal/service"
 )
 
-type RoomHandler struct {
-	service *service.RoomService
+type roomService interface {
+	Create(ctx context.Context, name string, description *string, capacity *int) (*domain.Room, error)
+	List(ctx context.Context) ([]domain.Room, error)
 }
 
-func NewRoomHandler(service *service.RoomService) *RoomHandler {
+type RoomHandler struct {
+	service roomService
+}
+
+func NewRoomHandler(service roomService) *RoomHandler {
 	return &RoomHandler{service: service}
 }
 
