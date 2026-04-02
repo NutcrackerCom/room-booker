@@ -1,0 +1,25 @@
+services:
+  db:
+    image: postgres:16
+    container_name: room-booking-db
+    environment:
+      POSTGRES_DB: room_booking
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: room-booking-app
+    depends_on:
+      - db
+    environment:
+      APP_PORT: 8080
+      DATABASE_URL: postgres://postgres:postgres@db:5432/room_booking?sslmode=disable
+      JWT_SECRET: super-secret-key
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:
