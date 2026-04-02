@@ -128,3 +128,48 @@ func (r *BookingRepository) Cancel(ctx context.Context, bookingID string) (*doma
 
 	return &booking, nil
 }
+
+func (r *BookingRepository) ListAll(ctx context.Context, page, pageSize int) ([]domain.Booking, int, error) {
+	offset := (page - 1) * pageSize
+
+	countQuery := `select count(*) from bookings`
+	var total int
+	if err := r.db.QueryRow(ctx, countQuery).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
+	query := `
+		select id, slot_id, user_id, status, conference_link, created_at
+		from bookings
+		order by created_at desc
+		limit $1 offset $2
+	`
+
+	rows, err := r.db.Query(ctx, query, pageSize, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var bookings []domain.Booking
+	for rows.Next() {
+		var booking domain.Booking
+		if err := rows.Scan(
+			&booking.ID,
+			&booking.SlotID,
+			&booking.UserID,
+			&booking.Status,
+			&booking.ConferenceLink,
+			&booking.CreatedAt,
+		); err != nil {
+			return nil, 0, err
+		}
+		bookings = append(bookings, booking)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, 0, err
+	}
+
+	return bookings, total, nil
+}

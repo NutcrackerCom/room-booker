@@ -80,3 +80,18 @@ func (s *BookingService) Cancel(ctx context.Context, bookingID, userID string) (
 
 	return s.bookingRepo.Cancel(ctx, bookingID)
 }
+
+func (s *BookingService) ListAll(ctx context.Context, page, pageSize int) ([]domain.Booking, int, error) {
+	if page == 0 {
+		page = 1
+	}
+	if pageSize == 0 {
+		pageSize = 20
+	}
+
+	if page < 1 || pageSize < 1 || pageSize > 100 {
+		return nil, 0, domain.ErrInvalidRequest
+	}
+
+	return s.bookingRepo.ListAll(ctx, page, pageSize)
+}

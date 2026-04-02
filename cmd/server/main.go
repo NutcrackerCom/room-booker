@@ -11,7 +11,6 @@ import (
 	"room-booking/internal/config"
 	"room-booking/internal/http/handlers"
 	"room-booking/internal/http/middleware"
-	"room-booking/internal/http/response"
 	"room-booking/internal/repository"
 	"room-booking/internal/service"
 )
@@ -67,31 +66,12 @@ func main() {
 	mux.Handle("/rooms/create", protected(middleware.RequireRole("admin")(http.HandlerFunc(roomHandler.Create))))
 	mux.Handle("/bookings/my", protected(middleware.RequireRole("user")(http.HandlerFunc(bookingHandler.My))))
 	mux.Handle("/bookings/{bookingId}/cancel", protected(middleware.RequireRole("user")(http.HandlerFunc(bookingHandler.Cancel))))
-	mux.Handle("/rooms/schedule/create", protected(middleware.RequireRole("admin")(http.HandlerFunc(scheduleHandler.Create))))
+	mux.Handle("/rooms/{roomId}/schedule/create", protected(middleware.RequireRole("admin")(http.HandlerFunc(scheduleHandler.Create))))
 	mux.Handle("/rooms/{roomId}/slots/list", protected(http.HandlerFunc(slotHandler.List)))
 
 	mux.Handle("/bookings/create", protected(middleware.RequireRole("user")(http.HandlerFunc(bookingHandler.Create))))
 
-	protectedMux := http.NewServeMux()
-	protectedMux.HandleFunc("/protected", func(w http.ResponseWriter, r *http.Request) {
-		userID, _ := r.Context().Value(middleware.UserIDKey).(string)
-		role, _ := r.Context().Value(middleware.RoleKey).(string)
-
-		response.WriteJSON(w, http.StatusOK, map[string]string{
-			"userId": userID,
-			"role":   role,
-		})
-	})
-
-	adminOnlyMux := http.NewServeMux()
-	adminOnlyMux.HandleFunc("/admin-only", func(w http.ResponseWriter, r *http.Request) {
-		response.WriteJSON(w, http.StatusOK, map[string]string{
-			"status": "ok",
-		})
-	})
-
-	mux.Handle("/protected", protected(protectedMux))
-	mux.Handle("/admin-only", protected(middleware.RequireRole("admin")(adminOnlyMux)))
+	mux.Handle("/bookings/list", protected(middleware.RequireRole("admin")(http.HandlerFunc(bookingHandler.List))))
 
 	addr := ":" + cfg.AppPort
 	fmt.Println("server started on", addr)

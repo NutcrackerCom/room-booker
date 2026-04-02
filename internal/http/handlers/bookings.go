@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"room-booking/internal/http/middleware"
 	"room-booking/internal/http/response"
@@ -68,5 +69,43 @@ func (h *BookingHandler) Cancel(w http.ResponseWriter, r *http.Request) {
 
 	response.WriteJSON(w, http.StatusOK, map[string]any{
 		"booking": booking,
+	})
+}
+
+func (h *BookingHandler) List(w http.ResponseWriter, r *http.Request) {
+	page := 1
+	pageSize := 20
+
+	if raw := r.URL.Query().Get("page"); raw != "" {
+		value, err := strconv.Atoi(raw)
+		if err != nil {
+			response.WriteError(w, http.StatusBadRequest, "INVALID_REQUEST", "invalid request")
+			return
+		}
+		page = value
+	}
+
+	if raw := r.URL.Query().Get("pageSize"); raw != "" {
+		value, err := strconv.Atoi(raw)
+		if err != nil {
+			response.WriteError(w, http.StatusBadRequest, "INVALID_REQUEST", "invalid request")
+			return
+		}
+		pageSize = value
+	}
+
+	bookings, total, err := h.service.ListAll(r.Context(), page, pageSize)
+	if err != nil {
+		response.WriteDomainError(w, err)
+		return
+	}
+
+	response.WriteJSON(w, http.StatusOK, map[string]any{
+		"bookings": bookings,
+		"pagination": map[string]any{
+			"page":     page,
+			"pageSize": pageSize,
+			"total":    total,
+		},
 	})
 }

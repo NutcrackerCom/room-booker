@@ -17,13 +17,14 @@ func NewScheduleHandler(service *service.ScheduleService) *ScheduleHandler {
 }
 
 type createScheduleRequest struct {
-	RoomID     string `json:"roomId"`
 	DaysOfWeek []int  `json:"daysOfWeek"`
 	StartTime  string `json:"startTime"`
 	EndTime    string `json:"endTime"`
 }
 
 func (h *ScheduleHandler) Create(w http.ResponseWriter, r *http.Request) {
+	roomID := r.PathValue("roomId")
+
 	var req createScheduleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.WriteError(w, http.StatusBadRequest, "INVALID_REQUEST", "invalid request")
@@ -32,7 +33,7 @@ func (h *ScheduleHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	schedule, err := h.service.Create(
 		r.Context(),
-		req.RoomID,
+		roomID,
 		req.DaysOfWeek,
 		req.StartTime,
 		req.EndTime,
