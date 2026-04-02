@@ -72,3 +72,15 @@ func (r *RoomRepository) List(ctx context.Context) ([]domain.Room, error) {
 
 	return rooms, nil
 }
+
+func (r *RoomRepository) Exists(ctx context.Context, roomID string) (bool, error) {
+	query := `select exists(select 1 from rooms where id = $1)`
+
+	var exists bool
+	err := r.db.QueryRow(ctx, query, roomID).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+
+	return exists, nil
+}

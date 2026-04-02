@@ -39,6 +39,11 @@ func main() {
 	roomService := service.NewRoomService(roomRepo)
 	roomHandler := handlers.NewRoomHandler(roomService)
 
+	slotRepo := repository.NewSlotRepository(db)
+	scheduleRepo := repository.NewScheduleRepository(db)
+	scheduleService := service.NewScheduleService(roomRepo, scheduleRepo, slotRepo)
+	scheduleHandler := handlers.NewScheduleHandler(scheduleService)
+
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/_info", func(w http.ResponseWriter, r *http.Request) {
@@ -52,6 +57,8 @@ func main() {
 
 	mux.Handle("/rooms/list", protected(http.HandlerFunc(roomHandler.List)))
 	mux.Handle("/rooms/create", protected(middleware.RequireRole("admin")(http.HandlerFunc(roomHandler.Create))))
+
+	mux.Handle("/rooms/schedule/create", protected(middleware.RequireRole("admin")(http.HandlerFunc(scheduleHandler.Create))))
 
 	// временные тестовые маршруты пока оставим
 	protectedMux := http.NewServeMux()
