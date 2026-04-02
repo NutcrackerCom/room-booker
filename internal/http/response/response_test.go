@@ -93,3 +93,81 @@ func TestWriteDomainError_Internal(t *testing.T) {
 		t.Fatalf("unexpected body: %s", body)
 	}
 }
+
+func TestWriteDomainError_Unauthorized(t *testing.T) {
+	rr := httptest.NewRecorder()
+
+	WriteDomainError(rr, domain.ErrUnauthorized)
+
+	if rr.Code != http.StatusUnauthorized {
+		t.Fatalf("expected status %d, got %d", http.StatusUnauthorized, rr.Code)
+	}
+	if !strings.Contains(rr.Body.String(), `"code":"UNAUTHORIZED"`) {
+		t.Fatalf("unexpected body: %s", rr.Body.String())
+	}
+}
+
+func TestWriteDomainError_RoomNotFound(t *testing.T) {
+	rr := httptest.NewRecorder()
+
+	WriteDomainError(rr, domain.ErrRoomNotFound)
+
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("expected status %d, got %d", http.StatusNotFound, rr.Code)
+	}
+	if !strings.Contains(rr.Body.String(), `"code":"ROOM_NOT_FOUND"`) {
+		t.Fatalf("unexpected body: %s", rr.Body.String())
+	}
+}
+
+func TestWriteDomainError_SlotNotFound(t *testing.T) {
+	rr := httptest.NewRecorder()
+
+	WriteDomainError(rr, domain.ErrSlotNotFound)
+
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("expected status %d, got %d", http.StatusNotFound, rr.Code)
+	}
+	if !strings.Contains(rr.Body.String(), `"code":"SLOT_NOT_FOUND"`) {
+		t.Fatalf("unexpected body: %s", rr.Body.String())
+	}
+}
+
+func TestWriteDomainError_SlotBooked(t *testing.T) {
+	rr := httptest.NewRecorder()
+
+	WriteDomainError(rr, domain.ErrSlotBooked)
+
+	if rr.Code != http.StatusConflict {
+		t.Fatalf("expected status %d, got %d", http.StatusConflict, rr.Code)
+	}
+	if !strings.Contains(rr.Body.String(), `"code":"SLOT_ALREADY_BOOKED"`) {
+		t.Fatalf("unexpected body: %s", rr.Body.String())
+	}
+}
+
+func TestWriteDomainError_BookingNotFound(t *testing.T) {
+	rr := httptest.NewRecorder()
+
+	WriteDomainError(rr, domain.ErrBookingNotFound)
+
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("expected status %d, got %d", http.StatusNotFound, rr.Code)
+	}
+	if !strings.Contains(rr.Body.String(), `"code":"BOOKING_NOT_FOUND"`) {
+		t.Fatalf("unexpected body: %s", rr.Body.String())
+	}
+}
+
+func TestWriteDomainError_ScheduleExists(t *testing.T) {
+	rr := httptest.NewRecorder()
+
+	WriteDomainError(rr, domain.ErrScheduleExists)
+
+	if rr.Code != http.StatusConflict {
+		t.Fatalf("expected status %d, got %d", http.StatusConflict, rr.Code)
+	}
+	if !strings.Contains(rr.Body.String(), `"code":"SCHEDULE_EXISTS"`) {
+		t.Fatalf("unexpected body: %s", rr.Body.String())
+	}
+}
