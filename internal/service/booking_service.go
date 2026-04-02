@@ -51,3 +51,32 @@ func (s *BookingService) Create(ctx context.Context, slotID, userID string, crea
 
 	return booking, nil
 }
+
+func (s *BookingService) ListMyUpcoming(ctx context.Context, userID string) ([]domain.Booking, error) {
+	if userID == "" {
+		return nil, domain.ErrUnauthorized
+	}
+
+	return s.bookingRepo.ListMyUpcoming(ctx, userID)
+}
+
+func (s *BookingService) Cancel(ctx context.Context, bookingID, userID string) (*domain.Booking, error) {
+	if bookingID == "" || userID == "" {
+		return nil, domain.ErrInvalidRequest
+	}
+
+	booking, err := s.bookingRepo.GetByID(ctx, bookingID)
+	if err != nil {
+		return nil, domain.ErrBookingNotFound
+	}
+
+	if booking.UserID != userID {
+		return nil, domain.ErrForbidden
+	}
+
+	if booking.Status == "cancelled" {
+		return booking, nil
+	}
+
+	return s.bookingRepo.Cancel(ctx, bookingID)
+}

@@ -42,3 +42,89 @@ func (r *BookingRepository) Create(ctx context.Context, slotID, userID string, c
 
 	return &booking, nil
 }
+
+func (r *BookingRepository) ListMyUpcoming(ctx context.Context, userID string) ([]domain.Booking, error) {
+	query := `
+		select b.id, b.slot_id, b.user_id, b.status, b.conference_link, b.created_at
+		from bookings b
+		join slots s on s.id = b.slot_id
+		where b.user_id = $1
+		  and s.start_at >= now()
+		order by s.start_at asc
+	`
+
+	rows, err := r.db.Query(ctx, query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var bookings []domain.Booking
+	for rows.Next() {
+		var booking domain.Booking
+		if err := rows.Scan(
+			&booking.ID,
+			&booking.SlotID,
+			&booking.UserID,
+			&booking.Status,
+			&booking.ConferenceLink,
+			&booking.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		bookings = append(bookings, booking)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return bookings, nil
+}
+
+func (r *BookingRepository) GetByID(ctx context.Context, bookingID string) (*domain.Booking, error) {
+	query := `
+		select id, slot_id, user_id, status, conference_link, created_at
+		from bookings
+		where id = $1
+	`
+
+	var booking domain.Booking
+	err := r.db.QueryRow(ctx, query, bookingID).Scan(
+		&booking.ID,
+		&booking.SlotID,
+		&booking.UserID,
+		&booking.Status,
+		&booking.ConferenceLink,
+		&booking.CreatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &booking, nil
+}
+
+func (r *BookingRepository) Cancel(ctx context.Context, bookingID string) (*domain.Booking, error) {
+	query := `
+		update bookings
+		set status = 'cancelled'
+		where id = $1
+		returning id, slot_id, user_id, status, conference_link, created_at
+	`
+
+	var booking domain.Booking
+	err := r.db.QueryRow(ctx, query, bookingID).Scan(
+		&booking.ID,
+		&booking.SlotID,
+		&booking.UserID,
+		&booking.Status,
+		&booking.ConferenceLink,
+		&booking.CreatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &booking, nil
+}

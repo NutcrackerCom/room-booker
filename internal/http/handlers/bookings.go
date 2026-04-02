@@ -41,3 +41,32 @@ func (h *BookingHandler) Create(w http.ResponseWriter, r *http.Request) {
 		"booking": booking,
 	})
 }
+
+func (h *BookingHandler) My(w http.ResponseWriter, r *http.Request) {
+	userID, _ := r.Context().Value(middleware.UserIDKey).(string)
+
+	bookings, err := h.service.ListMyUpcoming(r.Context(), userID)
+	if err != nil {
+		response.WriteDomainError(w, err)
+		return
+	}
+
+	response.WriteJSON(w, http.StatusOK, map[string]any{
+		"bookings": bookings,
+	})
+}
+
+func (h *BookingHandler) Cancel(w http.ResponseWriter, r *http.Request) {
+	bookingID := r.PathValue("bookingId")
+	userID, _ := r.Context().Value(middleware.UserIDKey).(string)
+
+	booking, err := h.service.Cancel(r.Context(), bookingID, userID)
+	if err != nil {
+		response.WriteDomainError(w, err)
+		return
+	}
+
+	response.WriteJSON(w, http.StatusOK, map[string]any{
+		"booking": booking,
+	})
+}

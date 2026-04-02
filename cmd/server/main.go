@@ -51,6 +51,7 @@ func main() {
 	bookingRepo := repository.NewBookingRepository(db)
 	bookingService := service.NewBookingService(slotRepo, bookingRepo)
 	bookingHandler := handlers.NewBookingHandler(bookingService)
+
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/_info", func(w http.ResponseWriter, r *http.Request) {
@@ -64,7 +65,8 @@ func main() {
 
 	mux.Handle("/rooms/list", protected(http.HandlerFunc(roomHandler.List)))
 	mux.Handle("/rooms/create", protected(middleware.RequireRole("admin")(http.HandlerFunc(roomHandler.Create))))
-
+	mux.Handle("/bookings/my", protected(middleware.RequireRole("user")(http.HandlerFunc(bookingHandler.My))))
+	mux.Handle("/bookings/{bookingId}/cancel", protected(middleware.RequireRole("user")(http.HandlerFunc(bookingHandler.Cancel))))
 	mux.Handle("/rooms/schedule/create", protected(middleware.RequireRole("admin")(http.HandlerFunc(scheduleHandler.Create))))
 	mux.Handle("/rooms/{roomId}/slots/list", protected(http.HandlerFunc(slotHandler.List)))
 
