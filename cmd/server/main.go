@@ -39,11 +39,18 @@ func main() {
 	roomService := service.NewRoomService(roomRepo)
 	roomHandler := handlers.NewRoomHandler(roomService)
 
-	slotRepo := repository.NewSlotRepository(db)
 	scheduleRepo := repository.NewScheduleRepository(db)
+
+	slotRepo := repository.NewSlotRepository(db)
+	slotService := service.NewSlotService(roomRepo, scheduleRepo, slotRepo)
+	slotHandler := handlers.NewSlotHandler(slotService)
+
 	scheduleService := service.NewScheduleService(roomRepo, scheduleRepo, slotRepo)
 	scheduleHandler := handlers.NewScheduleHandler(scheduleService)
 
+	bookingRepo := repository.NewBookingRepository(db)
+	bookingService := service.NewBookingService(slotRepo, bookingRepo)
+	bookingHandler := handlers.NewBookingHandler(bookingService)
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/_info", func(w http.ResponseWriter, r *http.Request) {
@@ -59,8 +66,10 @@ func main() {
 	mux.Handle("/rooms/create", protected(middleware.RequireRole("admin")(http.HandlerFunc(roomHandler.Create))))
 
 	mux.Handle("/rooms/schedule/create", protected(middleware.RequireRole("admin")(http.HandlerFunc(scheduleHandler.Create))))
+	mux.Handle("/rooms/{roomId}/slots/list", protected(http.HandlerFunc(slotHandler.List)))
 
-	// временные тестовые маршруты пока оставим
+	mux.Handle("/bookings/create", protected(middleware.RequireRole("user")(http.HandlerFunc(bookingHandler.Create))))
+
 	protectedMux := http.NewServeMux()
 	protectedMux.HandleFunc("/protected", func(w http.ResponseWriter, r *http.Request) {
 		userID, _ := r.Context().Value(middleware.UserIDKey).(string)
