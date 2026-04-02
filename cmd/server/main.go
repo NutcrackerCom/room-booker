@@ -10,6 +10,8 @@ import (
 	"room-booking/internal/auth"
 	"room-booking/internal/config"
 	"room-booking/internal/http/handlers"
+	"room-booking/internal/http/middleware"
+	"room-booking/internal/http/response"
 )
 
 func main() {
@@ -39,6 +41,27 @@ func main() {
 	})
 
 	mux.HandleFunc("/dummyLogin", authHandler.DummyLogin)
+
+	protected := http.NewServeMux()
+	protected.HandleFunc("/protected", func(w http.ResponseWriter, r *http.Request) {
+		userID, _ := r.Context().Value(middleware.UserIDKey).(string)
+		role, _ := r.Context().Value(middleware.RoleKey).(string)
+
+		response.WriteJSON(w, http.StatusOK, map[string]string{
+			"userId": userID,
+			"role":   role,
+		})
+	})
+
+	adminOnly := http.NewServeMux()
+	adminOnly.HandleFunc("/admin-only", func(w http.ResponseWriter, r *http.Request) {
+		response.WriteJSON(w, http.StatusOK, map[string]string{
+			"status": "ok",
+		})
+	})
+
+	mux.Handle("/protected", middleware.AuthRequired(jwtManager)(protected))
+	mux.Handle("/admin-only", middleware.AuthRequired(jwtManager)(middleware.RequireRole("admin")(adminOnly)))
 
 	addr := ":" + cfg.AppPort
 	fmt.Println("server started on", addr)
