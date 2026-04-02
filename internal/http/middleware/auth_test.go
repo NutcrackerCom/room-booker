@@ -46,7 +46,7 @@ func TestAuthRequired_WithInvalidHeader(t *testing.T) {
 func TestAuthRequired_WithValidToken(t *testing.T) {
 	manager := auth.NewJWTManager("test-secret")
 
-	token, err := manager.CreateToken("user")
+	token, err := manager.CreateToken(auth.UserID, "user")
 	if err != nil {
 		t.Fatalf("create token: %v", err)
 	}

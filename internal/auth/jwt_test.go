@@ -5,7 +5,7 @@ import "testing"
 func TestCreateAndParseAdminToken(t *testing.T) {
 	manager := NewJWTManager("test-secret")
 
-	token, err := manager.CreateToken("admin")
+	token, err := manager.CreateToken(AdminID, "admin")
 	if err != nil {
 		t.Fatalf("create token: %v", err)
 	}
@@ -26,7 +26,7 @@ func TestCreateAndParseAdminToken(t *testing.T) {
 func TestCreateAndParseUserToken(t *testing.T) {
 	manager := NewJWTManager("test-secret")
 
-	token, err := manager.CreateToken("user")
+	token, err := manager.CreateToken(UserID, "user")
 	if err != nil {
 		t.Fatalf("create token: %v", err)
 	}

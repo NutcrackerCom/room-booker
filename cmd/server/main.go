@@ -51,6 +51,10 @@ func main() {
 	bookingService := service.NewBookingService(slotRepo, bookingRepo)
 	bookingHandler := handlers.NewBookingHandler(bookingService)
 
+	userRepo := repository.NewUserRepository(db)
+	userService := service.NewUserService(userRepo, jwtManager)
+	userHandler := handlers.NewUserHandler(userService)
+
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/_info", func(w http.ResponseWriter, r *http.Request) {
@@ -59,6 +63,8 @@ func main() {
 	})
 
 	mux.HandleFunc("/dummyLogin", authHandler.DummyLogin)
+	mux.HandleFunc("/register", userHandler.Register)
+	mux.HandleFunc("/login", userHandler.Login)
 
 	protected := middleware.AuthRequired(jwtManager)
 

@@ -25,12 +25,7 @@ func NewJWTManager(secret string) *JWTManager {
 	return &JWTManager{secret: []byte(secret)}
 }
 
-func (m *JWTManager) CreateToken(role string) (string, error) {
-	userID := UserID
-	if role == "admin" {
-		userID = AdminID
-	}
-
+func (m *JWTManager) CreateToken(userID, role string) (string, error) {
 	claims := Claims{
 		UserID: userID,
 		Role:   role,
@@ -42,6 +37,15 @@ func (m *JWTManager) CreateToken(role string) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(m.secret)
+}
+
+func (m *JWTManager) CreateDummyToken(role string) (string, error) {
+	userID := UserID
+	if role == "admin" {
+		userID = AdminID
+	}
+
+	return m.CreateToken(userID, role)
 }
 
 func (m *JWTManager) ParseToken(raw string) (*Claims, error) {

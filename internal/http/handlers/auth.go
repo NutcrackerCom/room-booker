@@ -37,7 +37,7 @@ func (h *AuthHandler) DummyLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := h.jwt.CreateToken(req.Role)
+	token, err := h.jwt.CreateDummyToken(req.Role)
 	if err != nil {
 		response.WriteError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "internal server error")
 		return
