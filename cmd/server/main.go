@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"room-booking/internal/app"
+	"room-booking/internal/auth"
 	"room-booking/internal/config"
+	"room-booking/internal/http/handlers"
 )
 
 func main() {
@@ -26,12 +28,17 @@ func main() {
 		panic(err)
 	}
 
+	jwtManager := auth.NewJWTManager(cfg.JWTSecret)
+	authHandler := handlers.NewAuthHandler(jwtManager)
+
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/_info", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("ok"))
 	})
+
+	mux.HandleFunc("/dummyLogin", authHandler.DummyLogin)
 
 	addr := ":" + cfg.AppPort
 	fmt.Println("server started on", addr)
